@@ -13,9 +13,8 @@
   * 
   */
 class timecard_Timecard {
-	//18000 = 00:00:00 1/1/1970 EDT
-	protected $start_time = 18000;
-	protected $end_time = 18000;
+	protected $start_time = 0;
+	protected $end_time = 0;
 	
  /**
   * Constructor for Timecard class
@@ -43,21 +42,27 @@ class timecard_Timecard {
 		$this->start_time = $start_time;
 		$this->end_time = $end_time;
 	}
-	
-	public function set_start_time($time) {
-		$this->start_time = $time;
-	}
-	
-	public function set_end_time($time) {
-		$this->end_time = $time;
-	}
-	
+
+ /**
+  * Shift the start and end times forward.
+  *
+  * @param int  $seconds The number of seconds by which to shift start/end times. Negative values OK.
+  */		
 	public function shift($seconds) {
+		if(!is_integer($seconds))
+			throw new WrongTypeException('seconds must be an integer');
 		$this->end_time = $this->end_time + $seconds;
 		$this->start_time = $this->start_time + $seconds;
 	}
-	
+
+ /**
+  * Changes only the end-time, which will affect the total duration of the timecard.
+  *
+  * @param int  $seconds The number of seconds by which to shift the end time. Negative values OK.
+  */		
 	public function extend($seconds) {
+		if(!is_integer($seconds))
+			throw new WrongTypeException('seconds must be an integer');
 		$this->end_time = $this->end_time + $seconds;
 	}
 	
@@ -86,7 +91,7 @@ class timecard_Timecard {
   * @param	int	$round_to 	The number of decimals to round to. default = 1.
   * @return int	The number of hours, rounded to the specified decimal.
   */	
-	public function h($seconds, $round_to=1) {
+	public function seconds_to_hours($seconds, $round_to=1) {
 		return round( $seconds / 3600, $round_to );
 	}
 	
@@ -99,7 +104,7 @@ class timecard_Timecard {
   	public function duration($output = "seconds") {
 		$return = $this->end_time - $this->start_time;
 		if($output == "hours") {
-			$return = $this->h( $return );
+			$return = $this->seconds_to_hours( $return );
 		}
 		
 		return $return;
@@ -139,9 +144,7 @@ class timecard_Timecard {
 			$start = max($this->start_time, $alternate->start_time());
 			$end = min($this->end_time, $alternate->end_time());
 			
-			$return = clone $this;
-			$return->set_start_time($start);
-			$return->set_end_time($end);
+			$return = new timecard_Timecard($start, $end);
 			return $return;
 		}
 		
